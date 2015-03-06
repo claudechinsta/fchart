@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+	<title>扇形图</title>
+
+</head>
+<body>
+	<canvas id="canvas" width="500px" height="500px"></canvas>
+
+	<script src="fchart.js"></script>
+	<script>
+		var data = {
+			'a': {'figure': 100, 'color': '#1abc9c'},
+			'b': {'figure': 180, 'color': '#2ecc71'},
+			'c': {'figure': 40, 'color': '#e74c3c'},
+		}
+
+		var opt = {
+            data: data,
+            wrapper: document.getElementById('canvas'),
+            r: 200
+        };
+        
+        var fcs = new fchart(opt);
+	</script>
+</body>
+</html>
