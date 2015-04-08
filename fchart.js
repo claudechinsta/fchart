@@ -2,78 +2,170 @@
  * Created by heyli on 2015/1/26.
  */
 function fchart(opt) {
-    this.data = opt.data;                               // data
     this.canvas = opt.wrapper;                         // canvas
     this.ctx = opt.wrapper.getContext('2d');           // canvas context
     this.cx = opt.cx || 100;                            // piechart x coordinate
     this.cy = opt.cy || 100;                            // piechart y coordinate
     this.r = opt.r || 100;                              // piechart radius
-    this.img = new Image();                             // icon image
+    this.type = opt.type || 'piechart';
+    this.lineWidth = opt.lineWidth || 50;
+    // this.img = new Image();                             // icon image
     var self = this;
 
-    self.getWrapperSize();
-    self.sortData();
-    self.init();
+    this.data = {
+
+        // raw data
+        raw: undefined,
+
+        // sorted data
+        sorted: {},
+
+        // data for drawing
+        info: {},
+
+        // total figure
+        total: 0,
+
+        //percentage object
+        percentage: {
+
+        },
+
+        // initialization
+        init: function(rawData) {
+            this.raw = rawData;
+            this.getTotal();
+            this.sort();
+            this.getPercentage();
+
+            console.log(this.raw);
+            console.log(this.total);
+            console.log(this.sorted);
+            console.log(this.percentage);
+        },
+
+        // sort raw data
+        sort: function() {
+            // sort data based on figure
+            var sortTable = [];
+            for (key in this.raw) {
+                sortTable.push([key, this.raw[key].figure]);
+            }
+            sortTable.sort(function(a, b) {return b[1] - a[1]});
+
+            // resume other data field value
+            for (key in sortTable) {
+                var index = sortTable[key][0];
+                this.sorted[key] = {};
+                for (k in this.raw[index]) {
+                    this.sorted[key][k] = this.raw[index][k];
+                }
+            }
+        },
+
+        getTotal: function() {
+            for (key in this.raw) {
+                this.total += this.raw[key].figure;
+            }
+        },
+
+        getPercentage: function() {
+            for (key in this.sorted) {
+                this.percentage[key] = this.sorted[key].figure / this.total;
+            }
+        },
+    };
+
+    this.data.init(opt.data);
+    this.getWrapperSize();
+    this.init();
 }
 
 // initialization
 fchart.prototype.init = function() {
-    this.dataInfo = {};
-    this.dataRectangle = {};
     this.index = 0;
-    this.changedDeg = 10;
-    this.getTotal();
-    this.getPercentage();
+    // this.changedDeg = 10;
+    
     this.draw();
     // this.drawTotalNumber();
     // this.drawLabel();
 };
 
-// sortData from small to big
-fchart.prototype.sortData = function() {
-
-    var sortTable = [];
-    for (key in this.data) {
-        sortTable.push([key, this.data[key].figure]);
-    }
-    sortTable.sort(function(a, b) {return b[1] - a[1]});
-    for (key in sortTable) {
-        // var key = sortTable[index][0];
-        // dataSourceSorted[key] = {};
-        // dataSourceSorted[key]['figure'] = sortTable[index][1];
-        // dataSourceSorted[key]['color'] = dataSource[key].color;
-    }
-
-};
 
 // get wrapper size and set canvas size
 fchart.prototype.getWrapperSize = function() {
     this.canvas.width = this.canvas.parentNode.clientWidth * 2;
     this.canvas.height = this.canvas.parentNode.clientHeight * 2;
-    this.canvas.style.cssText = '-webkit-transform: translateX(-' + (this.canvas.width / 4) + 'px) scale(0.5);-webkit-transform-origin: 50% 50%';
+    this.canvas.style.cssText = '-webkit-transform: translateX(-' + (this.canvas.width / 4) + 'px) scale(0.5);-webkit-transform-origin: 50% 0';
     this.cx = this.canvas.clientWidth / 2;
-    this.cy = this.canvas.clientHeight / 2 - 150;
-};
-
-// get total number
-fchart.prototype.getTotal = function() {
-    this.total = 0;
-    for (key in this.data) {
-        this.total += this.data[key].figure;
-    }
-};
-
-// get percentage
-fchart.prototype.getPercentage = function() {
-    this.dataPercentage = {};
-    for (key in this.data) {
-        this.dataPercentage[key] = this.data[key].figure / this.total;
-    }
+    this.cy = this.canvas.clientHeight / 2;
 };
 
 // draw canvas
 fchart.prototype.draw = function() {
-    this.drawPieChart();
+    switch(this.type){
+        case 'ringchart':
+            this.drawRingChart();
+            break;
+        default:
+            this.drawPieChart();
+            break;
+    }
+};
+
+fchart.prototype.drawRingChart = function() {
+    var ctx = this.ctx;
+    var startDeg = -90;
+    var deg = 0;
+    var endDeg = 0;
+    var startRadius = 0;
+    var endRadius = 0;
+    var startPos = {'x': this.cx, 'y': this.r - this.y};    // start drawing position
+    var endPos = {'x': 0, 'y': 0};                              // end line position
+    this.currentDeg = 0;   //accumulated degrees for drawing icon
+
+    for (key in this.data.percentage) {
+        this.data.info[key] = {};
+        deg = this.data.percentage[key] * 360;
+        if (deg === 0) {
+            continue;
+        }
+        endDeg = startDeg + deg;
+        startRadius = this.getRadius(startDeg);
+        endRadius = this.getRadius(endDeg);
+        //store info
+        this.data.info[key].deg = deg;
+        this.data.info[key].startDeg = startDeg;
+        this.data.info[key].endDeg = endDeg;
+        this.data.info[key].startRadius = startRadius;
+        this.data.info[key].endRadius = endRadius;
+
+        // drawing pichart
+        ctx.beginPath();
+        ctx.strokeStyle = this.data.sorted[key].color;
+        ctx.arc(this.cx, this.cy, this.r, startRadius, endRadius, 0);
+        ctx.lineWidth = this.lineWidth;
+        ctx.stroke();
+        ctx.closePath();
+
+
+        // drawing white border
+        ctx.beginPath();
+        ctx.moveTo(this.cx, this.cy);
+        ctx.lineTo(endPos.x, endPos.y);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+        ctx.closePath();
+
+        // next sector data
+        startDeg = endDeg;
+        startPos.x = endPos.x;
+        startPos.y = endPos.y;
+
+    }
+
+
 };
 
 // draw piechart
@@ -89,9 +181,9 @@ fchart.prototype.drawPieChart = function(){
     var endPos = {'x': 0, 'y': 0};                              // end line position
     this.currentDeg = 0;   //accumulated degrees for drawing icon
 
-    for (key in this.dataPercentage) {
-        this.dataInfo[key] = {};
-        deg = this.dataPercentage[key] * 360;
+    for (key in this.data.percentage) {
+        this.data.info[key] = {};
+        deg = this.data.percentage[key] * 360;
         if (deg === 0) {
             continue;
         }
@@ -99,11 +191,11 @@ fchart.prototype.drawPieChart = function(){
         startRadius = this.getRadius(startDeg);
         endRadius = this.getRadius(endDeg);
         //store info
-        this.dataInfo[key].deg = deg;
-        this.dataInfo[key].startDeg = startDeg;
-        this.dataInfo[key].endDeg = endDeg;
-        this.dataInfo[key].startRadius = startRadius;
-        this.dataInfo[key].endRadius = endRadius;
+        this.data.info[key].deg = deg;
+        this.data.info[key].startDeg = startDeg;
+        this.data.info[key].endDeg = endDeg;
+        this.data.info[key].startRadius = startRadius;
+        this.data.info[key].endRadius = endRadius;
 
         // drawing pichart
         ctx.beginPath();
@@ -111,7 +203,7 @@ fchart.prototype.drawPieChart = function(){
         ctx.lineTo(startPos.x, startPos.y);
         ctx.arc(this.cx, this.cy, this.r, startRadius, endRadius, 0, 0);
         this.getPos(endDeg, endPos, this.r);
-        ctx.fillStyle = this.data[key].color;
+        ctx.fillStyle = this.data.sorted[key].color;
         ctx.fill();
         ctx.closePath();
 
