@@ -13,9 +13,9 @@ var utils = {
         // resume other data field value
         for (key in sortTable) {
             var index = sortTable[key][0];
-            sorted[key] = {};
+            sorted[index] = {};
             for (k in raw[index]) {
-                sorted[key][k] = raw[index][k];
+                sorted[index][k] = raw[index][k];
             }
         }
     },
@@ -66,6 +66,18 @@ function fchart(opt) {
     
     this.getWrapperSize();
     this.draw();
+    // this.drawLabel();
+    var ctx = this.ctx;
+    setInterval(function() {
+        // console.log('!!!');
+        // ctx.save();
+        
+        // self.draw();
+        // var time = new Date();
+        // ctx.rotate( ((2*Math.PI)/60)*time.getSeconds() + ((2*Math.PI)/60000)*time.getMilliseconds() );
+        // ctx.clearRect(0,0,600,600);
+        // ctx.restore();
+    }, 100);
 }
 
 // get wrapper size and set canvas size
@@ -222,15 +234,34 @@ fchart.prototype.drawPieChart = function(){
 
 // draw label and data
 fchart.prototype.drawLabel = function() {
+    var ctx = this.ctx;
+    switch(this.align){
+        case 'left':
+            var x = this.cx + this.r + 60;
+            break;
+        case 'right':
+            var x = 60;
+            break;
+        default:
+            return;
+            break;
+    }
     
+    var y = this.cy - this.r;
+
+    for (key in this.data.sorted) {
+        ctx.fillStyle = this.data.sorted[key].color;
+        ctx.fillRect(x, y, 30, 30);
+        this.drawText(x, y, key);
+        y += 60;
+    }
 };
 
-fchart.prototype.drawText = function() {
-    
-};
-
-fchart.prototype.drawNum = function() {
-    
+fchart.prototype.drawText = function(x, y, key) {
+    var ctx = this.ctx;
+    ctx.font = "30px -apple-system-font, \"Helvetica Neue\", Helvetica, STHeiTi, sans-serif";
+    ctx.fillStyle = "#000000";
+    ctx.fillText(key + ' ' + this.data.percentage[key] + '%', x + 40, y + 25);
 };
 
 // get end line of sector position
