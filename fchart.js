@@ -68,16 +68,26 @@ function fchart(opt) {
     this.draw();
     // this.drawLabel();
     var ctx = this.ctx;
-    setInterval(function() {
-        // console.log('!!!');
-        // ctx.save();
-        
-        // self.draw();
-        // var time = new Date();
-        // ctx.rotate( ((2*Math.PI)/60)*time.getSeconds() + ((2*Math.PI)/60000)*time.getMilliseconds() );
-        // ctx.clearRect(0,0,600,600);
-        // ctx.restore();
-    }, 100);
+    var startDeg = -90;
+    var incre = 10;
+    // if (this.type === 'piechart') {
+        var dr = setInterval(function() {
+            // console.log('!!!');
+            ctx.save();
+            
+            // var time = new Date();
+            // ctx.rotate( ((2*Math.PI)/60)*time.getSeconds() + ((2*Math.PI)/60000)*time.getMilliseconds() );
+            ctx.clearRect(0,0,600,600);
+            self.draw(startDeg);
+            startDeg += incre;
+
+            if (startDeg >= 270) {
+                clearInterval(dr);
+            }
+            
+            ctx.restore();
+        }, 16);
+    // }
 }
 
 // get wrapper size and set canvas size
@@ -102,16 +112,16 @@ fchart.prototype.getWrapperSize = function() {
 };
 
 // draw canvas
-fchart.prototype.draw = function() {
+fchart.prototype.draw = function(startDeg) {
     switch(this.type){
         case 'ringchart':
-            this.drawRingChart();
+            this.drawRingChart(startDeg);
             break;
         case 'barchart':
             this.drawBarChart();
             break;
         default:
-            this.drawPieChart();
+            this.drawPieChart(startDeg);
             break;
     }
 };
@@ -120,9 +130,9 @@ fchart.prototype.drawBarChart = function(){
     var ctx = this.ctx;
 };
 
-fchart.prototype.drawRingChart = function() {
+fchart.prototype.drawRingChart = function(startDeg) {
     var ctx = this.ctx;
-    var startDeg = -90;
+    // var startDeg = -90;
     var deg = 0;
     var endDeg = 0;
     var startRadius = 0;
@@ -176,10 +186,10 @@ fchart.prototype.drawRingChart = function() {
 };
 
 // draw piechart
-fchart.prototype.drawPieChart = function(){
+fchart.prototype.drawPieChart = function(startDeg){
     var ctx = this.ctx;
 
-    var startDeg = -90;      // top degree is -90 degree
+    // var startDeg = -90;      // top degree is -90 degree
     var deg = 0;             // start degree
     var endDeg = 0;          // end degree
     var startRadius = 0;     // start radius
@@ -269,6 +279,10 @@ fchart.prototype.getPos = function(currentDeg, lineToPos, r) {
     var radius = 0;
     var deg = 0;
     currentDeg += 90;
+
+    if (currentDeg > 360) {
+        currentDeg -= 360;
+    }
 
     if (currentDeg <= 90) {
         deg = 90 - currentDeg;
