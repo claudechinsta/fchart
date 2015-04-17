@@ -66,23 +66,21 @@ function fchart(opt) {
     
     this.getWrapperSize();
     this.draw();
-    // this.drawLabel();
+    
     var ctx = this.ctx;
     var startDeg = -90;
     var incre = 10;
     // if (this.type === 'piechart') {
         var dr = setInterval(function() {
-            // console.log('!!!');
             ctx.save();
             
-            // var time = new Date();
-            // ctx.rotate( ((2*Math.PI)/60)*time.getSeconds() + ((2*Math.PI)/60000)*time.getMilliseconds() );
             ctx.clearRect(0,0,600,600);
             self.draw(startDeg);
             startDeg += incre;
 
             if (startDeg >= 270) {
                 clearInterval(dr);
+                self.drawLabel();
             }
             
             ctx.restore();
