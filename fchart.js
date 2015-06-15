@@ -69,22 +69,24 @@ function fchart(opt) {
     
     var ctx = this.ctx;
     var startDeg = -90;
-    var incre = 10;
+    var incre = 30;
     // if (this.type === 'piechart') {
         var dr = setInterval(function() {
-            ctx.save();
+            clearInterval(dr);
+            // ctx.save();
             
             ctx.clearRect(0,0,600,600);
             self.draw(startDeg);
             startDeg += incre;
 
-            if (startDeg >= 270) {
+            if (startDeg >= 300) {
                 clearInterval(dr);
                 self.drawLabel();
+                // self.monitorEvent();
             }
             
-            ctx.restore();
-        }, 16);
+            // ctx.restore();
+        }, 30);
     // }
 }
 
@@ -124,8 +126,103 @@ fchart.prototype.draw = function(startDeg) {
     }
 };
 
-fchart.prototype.drawBarChart = function(){
+fchart.prototype._drawBarLabel = function(x, y, figure) {
     var ctx = this.ctx;
+    ctx.font = "30px -apple-system-font, \"Helvetica Neue\", Helvetica, STHeiTi, sans-serif";
+    var txt = figure;
+    console.log();
+    ctx.fillStyle = "#000000";
+    ctx.fillText(figure, x - ctx.measureText(txt).width - 10, y + 15);
+}
+
+fchart.prototype._drawAxis = function(ctx) {
+    var centerX = this.canvas.width / 2;
+    var centerY = this.canvas.height / 2;
+
+    // 80%的画布长宽作为坐标轴
+    var axisXLen = this.canvas.width * 0.8;
+    var axisYLen = this.canvas.height * 0.8;
+
+    var axisZeroPointX = centerX - axisXLen / 2;
+    var axisZeroPointY = centerY + axisYLen / 2;
+
+    var axisDesPointX = axisZeroPointX + axisXLen;
+    var axisDesPointY = axisZeroPointY - axisYLen;
+
+    // 画坐标轴
+    ctx.beginPath();
+    // 回到原点
+    ctx.moveTo(axisZeroPointX, axisZeroPointY);
+    // 
+    ctx.lineTo(axisDesPointX, axisZeroPointY);
+    ctx.moveTo(axisZeroPointX, axisZeroPointY);
+    ctx.lineTo(axisZeroPointX, axisDesPointY);
+    ctx.lineWidth = 1;
+    ctx.closePath();
+    ctx.stroke();
+    
+    // Y轴数值每节高度
+    var axisYPerLen = axisYLen / 4;
+
+    // 找最大值
+    var max = 0;
+    var arrLen = 0;
+    for (key in this.data.raw) {
+        if (this.data.raw[key].figure > max) {
+            max = this.data.raw[key].figure;
+        }
+        arrLen++;
+    }
+
+    // Y轴数值
+    var yValue = Math.ceil(max / 4);
+    var bitArr = [];
+    
+    // 计算端值
+    var accu = 0;
+    for (var i = 5; i > 0 ; i =i + 5) {
+        accu = i * 4;
+        if (accu > yValue) {
+            break;
+        }
+    }
+
+    // 画Y坐标轴端点及数值
+    ctx.beginPath();
+
+    for (var i = 0; i <= 4; i++) {
+        var x = axisZeroPointX - 5;
+        var y = axisZeroPointY - i * axisYPerLen - 5;
+        this._drawBarLabel(x, y, accu * i);
+        ctx.fillRect(x, y, 10, 10);
+    }
+
+    ctx.closePath();
+
+    // x轴上放bar的允许长度
+    var barAxisW = axisXLen * 0.8;
+    var barW = barAxisW / arrLen * 0.7;
+    var gap = barAxisW / arrLen * 0.3;
+    var x = axisZeroPointX - (axisYLen - barAxisW) / 2
+    
+    for (key in this.data.raw) {
+        ctx.beginPath();
+        var barH = this.data.raw[key].figure / accu * axisYPerLen;
+        var y = axisZeroPointY - barH;
+        ctx.fillStyle = this.data.raw[key].color;
+        ctx.fillRect(x, y, barW, barH);
+        x += (barW + gap);
+        ctx.closePath();
+    }
+
+};
+
+fchart.prototype.drawBarChart = function() {
+    var ctx = this.ctx;
+    this._drawAxis(ctx);
+
+    // console.log(this.canvas.width);
+    // console.log(this.canvas.height);
 };
 
 fchart.prototype.drawRingChart = function(startDeg) {
@@ -164,14 +261,14 @@ fchart.prototype.drawRingChart = function(startDeg) {
         ctx.closePath();
 
 
-        /*// drawing white border
-        ctx.beginPath();
-        ctx.moveTo(this.cx, this.cy);
-        ctx.lineTo(endPos.x, endPos.y);
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = '#ffffff';
-        ctx.stroke();
-        ctx.closePath();*/
+        // drawing white border
+        // ctx.beginPath();
+        // ctx.moveTo(this.cx, this.cy);
+        // ctx.lineTo(endPos.x, endPos.y);
+        // ctx.lineWidth = 1;
+        // ctx.strokeStyle = '#ffffff';
+        // ctx.stroke();
+        // ctx.closePath();
 
         // next sector data
         startDeg = endDeg;
@@ -306,4 +403,11 @@ fchart.prototype.getPos = function(currentDeg, lineToPos, r) {
         lineToPos.x = this.cx - Math.cos(radius) * r;
         lineToPos.y = this.cy - Math.sin(radius) * r;
     }
+};
+
+fchart.prototype.monitorEvent = function() {
+
+    this.canvas.addEventListener('mousemove', function(e) {
+        console.log(e.clientX, e.clientY);
+    }, false);
 };

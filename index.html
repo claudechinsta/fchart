@@ -33,6 +33,7 @@
 			'阿里': {'figure': 100, 'color': '#1abc9c'},
 			'腾讯': {'figure': 180, 'color': '#2ecc71'},
 			'百度': {'figure': 40, 'color': '#e74c3c'},
+			'京东': {'figure': 20, 'color': '#f1c40f'},
 		}
 
 		var opt1 = {
@@ -51,8 +52,14 @@
             r: 200,
             type: 'ringchart'
         };
-        var fcs2 = new fchart(opt2);
+        // var fcs2 = new fchart(opt2);
 
+        var opt3 = {
+            data: data,
+            wrapper: document.getElementById('canvas2'),
+            type: 'barchart'
+        };
+        var fcs3 = new fchart(opt3);
 
   //       var ringer = {
 		//   countdown_to: "10/10/2014",
