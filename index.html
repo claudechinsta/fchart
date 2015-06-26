@@ -20,6 +20,9 @@
 	<div style="width:600px;height:300px;">
 		<canvas id="canvas2" width="600px" height="300px"></canvas>
 	</div>
+	<div style="width:600px;height:300px;">
+		<canvas id="canvas3" width="600px" height="300px"></canvas>
+	</div>
 
 	<!-- <canvas id="cs1" width="300px" height="300px"></canvas>
 	<canvas id="cs2" width="300px" height="300px"></canvas> -->
@@ -52,11 +55,11 @@
             r: 200,
             type: 'ringchart'
         };
-        // var fcs2 = new fchart(opt2);
+        var fcs2 = new fchart(opt2);
 
         var opt3 = {
             data: data,
-            wrapper: document.getElementById('canvas2'),
+            wrapper: document.getElementById('canvas3'),
             type: 'barchart'
         };
         var fcs3 = new fchart(opt3);
